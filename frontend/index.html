@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Microservice Bootstrap Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0a0e1a;
+      --surface:   rgba(255,255,255,0.04);
+      --border:    rgba(255,255,255,0.09);
+      --accent1:   #6366f1;
+      --accent2:   #8b5cf6;
+      --accent3:   #06b6d4;
+      --success:   #10b981;
+      --error:     #ef4444;
+      --warning:   #f59e0b;
+      --text:      #e2e8f0;
+      --muted:     #64748b;
+      --radius:    14px;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Animated background ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(99,102,241,0.18) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 80%, rgba(139,92,246,0.14) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 40% at 50% 50%, rgba(6,182,212,0.07) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .page { position: relative; z-index: 1; max-width: 860px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+
+    /* ── Header ── */
+    header { text-align: center; margin-bottom: 3rem; }
+    .logo-row {
+      display: inline-flex; align-items: center; gap: 12px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 999px; padding: 8px 20px; margin-bottom: 1.5rem;
+      backdrop-filter: blur(12px);
+    }
+    .logo-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--success); box-shadow: 0 0 8px var(--success); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.4; } }
+    .logo-label { font-size: .75rem; font-weight: 600; letter-spacing: .08em; color: var(--muted); text-transform: uppercase; }
+
+    h1 { font-size: 2.6rem; font-weight: 800; line-height: 1.15; letter-spacing: -.03em;
+         background: linear-gradient(135deg, #e2e8f0 0%, var(--accent1) 50%, var(--accent2) 100%);
+         -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .subtitle { margin-top: .75rem; color: var(--muted); font-size: 1rem; }
+
+    /* ── Card / glass ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      backdrop-filter: blur(16px);
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+    }
+    .card-title {
+      font-size: .7rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+      color: var(--accent1); margin-bottom: 1.4rem;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .card-title::before { content: ''; display: block; width: 14px; height: 2px; background: var(--accent1); border-radius: 2px; }
+
+    /* ── Form grid ── */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    @media (max-width: 580px) { .grid-2 { grid-template-columns: 1fr; } h1 { font-size: 1.9rem; } }
+
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    label { font-size: .78rem; font-weight: 600; color: var(--muted); letter-spacing: .04em; }
+    label span.req { color: var(--accent1); margin-left: 2px; }
+    label span.opt { color: var(--muted); font-weight: 400; font-size: .72rem; }
+
+    input, select {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: .92rem;
+      padding: 10px 14px;
+      transition: border-color .2s, box-shadow .2s;
+      outline: none;
+      width: 100%;
+    }
+    input::placeholder { color: var(--muted); }
+    input:focus, select:focus {
+      border-color: var(--accent1);
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+    }
+    select option { background: #1e2235; color: var(--text); }
+
+    /* ── Divider ── */
+    .divider { height: 1px; background: var(--border); margin: 1.4rem 0; }
+
+    .toggle-row {
+      display: flex; align-items: center; gap: 10px; cursor: pointer;
+      font-size: .85rem; color: var(--muted); user-select: none;
+    }
+    .toggle-row:hover { color: var(--text); }
+    .chevron { transition: transform .25s; display: inline-block; font-size: .75rem; }
+    .chevron.open { transform: rotate(90deg); }
+    #github-fields { display: none; margin-top: 1.2rem; }
+
+    /* ── Button ── */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+      width: 100%; padding: 13px;
+      background: linear-gradient(135deg, var(--accent1), var(--accent2));
+      border: none; border-radius: 10px;
+      color: #fff; font-family: 'Inter', sans-serif; font-size: 1rem; font-weight: 700;
+      cursor: pointer; letter-spacing: .02em;
+      transition: opacity .2s, transform .15s, box-shadow .2s;
+      box-shadow: 0 4px 24px rgba(99,102,241,0.35);
+      position: relative; overflow: hidden;
+    }
+    .btn:hover { opacity: .92; transform: translateY(-1px); box-shadow: 0 8px 32px rgba(99,102,241,0.45); }
+    .btn:active { transform: translateY(0); }
+    .btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+    .spinner { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Chips row ── */
+    .chip-row { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .75rem; }
+    .chip {
+      font-size: .7rem; font-family: 'JetBrains Mono', monospace;
+      padding: 3px 10px; border-radius: 999px;
+      border: 1px solid;
+    }
+    .chip-blue  { color: var(--accent3);  border-color: rgba(6,182,212,.35);  background: rgba(6,182,212,.08); }
+    .chip-purple{ color: var(--accent2);  border-color: rgba(139,92,246,.35); background: rgba(139,92,246,.08); }
+    .chip-green { color: var(--success);  border-color: rgba(16,185,129,.35); background: rgba(16,185,129,.08); }
+
+    /* ── Status bar ── */
+    .status { display: flex; gap: 12px; margin-bottom: 1.5rem; }
+    .status-item { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; cursor: pointer; transition: border-color .2s; }
+    .status-item:hover { border-color: var(--accent1); }
+    .status-item .label { font-size: .68rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .07em; }
+    .status-item .value { font-size: 1rem; font-weight: 700; margin-top: 2px; font-family: 'JetBrains Mono', monospace; }
+    .up   { color: var(--success); } .down { color: var(--error); } .unknown { color: var(--warning); }
+
+    /* ── Result panel ── */
+    #result { display: none; }
+    .result-header {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 20px;
+      border-radius: var(--radius) var(--radius) 0 0;
+      font-weight: 700; font-size: .9rem;
+    }
+    .result-header.success { background: rgba(16,185,129,.12); border: 1px solid rgba(16,185,129,.3); border-bottom: none; color: var(--success); }
+    .result-header.error   { background: rgba(239,68,68,.12);  border: 1px solid rgba(239,68,68,.3);  border-bottom: none; color: var(--error); }
+    .result-body {
+      background: rgba(0,0,0,.35); border: 1px solid var(--border);
+      border-top: none; border-radius: 0 0 var(--radius) var(--radius);
+      padding: 1.5rem;
+    }
+    .kv-grid { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; }
+    .kv-key  { font-size: .75rem; color: var(--muted); font-weight: 600; align-self: start; padding-top: 2px; }
+    .kv-val  { font-family: 'JetBrains Mono', monospace; font-size: .82rem; color: var(--text); word-break: break-all; }
+    .kv-val.highlight { color: var(--accent3); }
+
+    .file-list { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .3rem; }
+    .file-pill { font-size: .7rem; font-family: 'JetBrains Mono', monospace;
+                 background: rgba(99,102,241,.12); border: 1px solid rgba(99,102,241,.25);
+                 color: var(--accent1); border-radius: 6px; padding: 2px 8px; }
+
+    /* ── Endpoint Tester ── */
+    .endpoint-row { display: flex; gap: .75rem; align-items: center; }
+    .method { font-size: .7rem; font-family: 'JetBrains Mono', monospace; font-weight: 700; min-width: 40px; color: var(--success); }
+    .path { font-size: .82rem; font-family: 'JetBrains Mono', monospace; color: var(--accent3); flex: 1; }
+    .btn-small {
+      padding: 6px 14px; font-size: .75rem; font-weight: 700;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 7px; color: var(--text); cursor: pointer;
+      transition: border-color .2s, background .2s;
+      font-family: 'Inter', sans-serif; white-space: nowrap;
+    }
+    .btn-small:hover { border-color: var(--accent1); background: rgba(99,102,241,.1); }
+
+    .mini-result { margin-top: .75rem; display: none; }
+    .mini-result pre {
+      font-family: 'JetBrains Mono', monospace; font-size: .78rem;
+      background: rgba(0,0,0,.4); border: 1px solid var(--border); border-radius: 8px;
+      padding: 12px; overflow-x: auto; white-space: pre-wrap; word-break: break-word;
+      color: var(--text);
+    }
+    .mini-result pre.ok  { border-color: rgba(16,185,129,.3); }
+    .mini-result pre.err { border-color: rgba(239,68,68,.3); color: var(--error); }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed; bottom: 2rem; right: 2rem; z-index: 999;
+      background: #1e2235; border: 1px solid var(--border);
+      border-radius: 10px; padding: 12px 18px;
+      font-size: .85rem; color: var(--text);
+      transform: translateY(20px); opacity: 0;
+      transition: all .3s; pointer-events: none;
+    }
+    #toast.show { transform: translateY(0); opacity: 1; }
+
+    footer { text-align: center; margin-top: 3rem; color: var(--muted); font-size: .78rem; }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <header>
+    <div class="logo-row">
+      <div class="logo-dot"></div>
+      <span class="logo-label">DevOps Bootstrap Platform v1.0</span>
+    </div>
+    <h1>Microservice Generator</h1>
+    <p class="subtitle">Fill in the details below to auto-scaffold a production-ready microservice</p>
+    <div class="chip-row" style="justify-content:center; margin-top:1rem;">
+      <span class="chip chip-blue">Spring Boot 3</span>
+      <span class="chip chip-purple">Jenkins CI/CD</span>
+      <span class="chip chip-green">Docker Ready</span>
+      <span class="chip chip-blue">JaCoCo Coverage</span>
+      <span class="chip chip-purple">GitHub Integration</span>
+    </div>
+  </header>
+
+  <!-- Status Bar -->
+  <div class="status">
+    <div class="status-item" onclick="checkHealth()" title="Click to test health">
+      <div class="label">API Status</div>
+      <div class="value unknown" id="health-status">⬤ Checking…</div>
+    </div>
+    <div class="status-item">
+      <div class="label">Backend URL</div>
+      <div class="value" id="backend-url" style="font-size:.78rem; color:var(--accent3);">detecting…</div>
+    </div>
+    <div class="status-item">
+      <div class="label">Generated Services</div>
+      <div class="value" id="gen-count" style="color:var(--accent1);">0</div>
+    </div>
+  </div>
+
+  <!-- Bootstrap Form -->
+  <div class="card">
+    <div class="card-title">Service Configuration</div>
+    <form id="bootstrap-form" onsubmit="submitBootstrap(event)">
+
+      <div class="grid-2">
+        <div class="field">
+          <label>Service Name <span class="req">*</span></label>
+          <input id="serviceName" type="text" placeholder="e.g. order-service" required pattern="[a-z0-9]+(-[a-z0-9]+)*" title="lowercase with hyphens only" />
+        </div>
+        <div class="field">
+          <label>Port <span class="req">*</span></label>
+          <input id="port" type="number" placeholder="e.g. 8090" min="1024" max="65535" required />
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-top:1rem;">
+        <div class="field">
+          <label>Base Package <span class="req">*</span></label>
+          <input id="packageName" type="text" placeholder="e.g. com.company" required />
+        </div>
+        <div class="field">
+          <label>Database Type <span class="req">*</span></label>
+          <select id="databaseType">
+            <option value="PostgreSQL">PostgreSQL</option>
+            <option value="MySQL">MySQL</option>
+            <option value="MongoDB">MongoDB</option>
+            <option value="MariaDB">MariaDB</option>
+            <option value="SQLServer">SQLServer</option>
+            <option value="Oracle">Oracle</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field" style="margin-top:1rem;">
+        <label>Description <span class="opt">(optional)</span></label>
+        <input id="description" type="text" placeholder="Short description of this microservice" />
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- GitHub toggle -->
+      <div class="toggle-row" onclick="toggleGithub()" id="gh-toggle">
+        <span class="chevron" id="gh-chevron">▶</span>
+        GitHub Integration <span style="font-size:.75rem; margin-left:4px; color:var(--muted);">(optional — creates remote repo)</span>
+      </div>
+      <div id="github-fields">
+        <div class="grid-2">
+          <div class="field">
+            <label>GitHub Token</label>
+            <input id="gitHubToken" type="password" placeholder="ghp_xxxxxxxxxxxx" />
+          </div>
+          <div class="field">
+            <label>GitHub Owner</label>
+            <input id="gitHubOwner" type="text" placeholder="your-username or org" />
+          </div>
+        </div>
+        <div class="field" style="margin-top:1rem;">
+          <label>Repository Name <span class="opt">(defaults to service name)</span></label>
+          <input id="gitHubRepository" type="text" placeholder="Leave blank to auto-fill from service name" />
+        </div>
+      </div>
+
+      <div style="margin-top:2rem;">
+        <button type="submit" class="btn" id="submit-btn">
+          <span id="btn-icon">⚡</span>
+          <span id="btn-text">Generate Microservice</span>
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Result -->
+  <div id="result">
+    <div class="result-header" id="result-header">
+      <span id="result-icon"></span>
+      <span id="result-title"></span>
+    </div>
+    <div class="result-body">
+      <div id="result-content"></div>
+    </div>
+  </div>
+
+  <!-- Quick Endpoint Tester -->
+  <div class="card" style="margin-top:1.5rem;">
+    <div class="card-title">Quick API Tester</div>
+
+    <div class="endpoint-row">
+      <span class="method">GET</span>
+      <span class="path">/platform/api/health</span>
+      <button class="btn-small" onclick="quickTest('health', this)">Test</button>
+    </div>
+    <div class="mini-result" id="res-health"><pre></pre></div>
+
+    <div class="divider"></div>
+
+    <div class="endpoint-row">
+      <span class="method">GET</span>
+      <span class="path">/platform/api/info</span>
+      <button class="btn-small" onclick="quickTest('info', this)">Test</button>
+    </div>
+    <div class="mini-result" id="res-info"><pre></pre></div>
+  </div>
+
+</div><!-- .page -->
+
+<div id="toast"></div>
+
+<footer>
+  Microservice Bootstrap Automation Platform &nbsp;·&nbsp; DevOps Project
+</footer>
+
+<script>
+  const API_HOST = window.location.hostname || 'localhost';
+  const BASE = `http://${API_HOST}:8081/platform/api`;
+  let generated = 0;
+
+  /* ── Health check on load ── */
+  async function checkHealth(showToast = true) {
+    const el = document.getElementById('health-status');
+    el.className = 'value unknown';
+    el.textContent = '⬤ Checking…';
+    try {
+      const r = await fetch(`${BASE}/health`, { signal: AbortSignal.timeout(4000) });
+      if (r.ok) {
+        el.className = 'value up';
+        el.textContent = '⬤ Online';
+        if (showToast) toast('✅ Backend is reachable!', 'green');
+      } else {
+        el.className = 'value down';
+        el.textContent = '⬤ Error ' + r.status;
+      }
+    } catch {
+      el.className = 'value down';
+      el.textContent = '⬤ Offline';
+      if (showToast) toast('⚠️ Cannot reach backend. Ensure docker compose is running.', 'red');
+    }
+  }
+
+  /* ── GitHub toggle ── */
+  function toggleGithub() {
+    const fields = document.getElementById('github-fields');
+    const chevron = document.getElementById('gh-chevron');
+    const open = fields.style.display === 'grid' || fields.style.display === 'block';
+    fields.style.display = open ? 'none' : 'block';
+    chevron.classList.toggle('open', !open);
+  }
+
+  /* ── Submit bootstrap ── */
+  async function submitBootstrap(e) {
+    e.preventDefault();
+    const btn  = document.getElementById('submit-btn');
+    const icon = document.getElementById('btn-icon');
+    const text = document.getElementById('btn-text');
+
+    btn.disabled = true;
+    icon.innerHTML = '<div class="spinner"></div>';
+    text.textContent = 'Generating…';
+
+    const payload = {
+      serviceName:      v('serviceName'),
+      port:             v('port'),
+      packageName:      v('packageName'),
+      databaseType:     v('databaseType'),
+      description:      v('description') || undefined,
+      gitHubToken:      v('gitHubToken')      || undefined,
+      gitHubOwner:      v('gitHubOwner')      || undefined,
+      gitHubRepository: v('gitHubRepository') || undefined,
+    };
+    // strip undefined
+    Object.keys(payload).forEach(k => payload[k] === undefined && delete payload[k]);
+
+    try {
+      const r = await fetch(`${BASE}/bootstrap`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        signal: AbortSignal.timeout(30000),
+      });
+
+      const data = await r.json();
+      showResult(r.ok, r.status, data, payload.serviceName);
+      if (r.ok) {
+        generated++;
+        document.getElementById('gen-count').textContent = generated;
+      }
+    } catch (err) {
+      showResult(false, 0, { error: 'Network Error', message: err.message }, '');
+    } finally {
+      btn.disabled = false;
+      icon.textContent = '⚡';
+      text.textContent = 'Generate Microservice';
+    }
+  }
+
+  function showResult(ok, status, data, svcName) {
+    const panel = document.getElementById('result');
+    const header = document.getElementById('result-header');
+    const icon   = document.getElementById('result-icon');
+    const title  = document.getElementById('result-title');
+    const body   = document.getElementById('result-content');
+
+    panel.style.display = 'block';
+    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    if (ok) {
+      header.className = 'result-header success';
+      icon.textContent  = '✅';
+      title.textContent = `Microservice "${svcName}" generated successfully! (HTTP ${status})`;
+
+      const rows = Object.entries(data).map(([k, v]) => {
+        const key = k.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase());
+        if (Array.isArray(v)) {
+          return `<div class="kv-key">${key}</div><div class="kv-val"><div class="file-list">${v.map(f => `<span class="file-pill">${f}</span>`).join('')}</div></div>`;
+        }
+        const hl = (k === 'apiBaseUrl' || k === 'projectPath' || k === 'repositoryUrl') ? ' highlight' : '';
+        return `<div class="kv-key">${key}</div><div class="kv-val${hl}">${v ?? '—'}</div>`;
+      }).join('');
+
+      body.innerHTML = `<div class="kv-grid">${rows}</div>`;
+      toast('🎉 Microservice generated!', 'green');
+    } else {
+      header.className = 'result-header error';
+      icon.textContent  = '❌';
+      title.textContent = `Failed — ${data.error || 'Error'} (HTTP ${status || 'timeout'})`;
+      body.innerHTML    = `<div style="color:var(--error); font-family:'JetBrains Mono',monospace; font-size:.85rem; white-space:pre-wrap;">${data.message || JSON.stringify(data, null, 2)}</div>`;
+      toast('❌ Bootstrap failed. See details below.', 'red');
+    }
+  }
+
+  /* ── Quick tester ── */
+  async function quickTest(endpoint, btn) {
+    const resultEl = document.getElementById(`res-${endpoint}`);
+    const pre = resultEl.querySelector('pre');
+    btn.textContent = '…';
+    btn.disabled = true;
+    resultEl.style.display = 'block';
+    pre.textContent = 'Loading…';
+    pre.className = '';
+    try {
+      const r = await fetch(`${BASE}/${endpoint}`, { signal: AbortSignal.timeout(5000) });
+      const data = await r.json();
+      pre.textContent = JSON.stringify(data, null, 2);
+      pre.className = r.ok ? 'ok' : 'err';
+    } catch (err) {
+      pre.textContent = 'Error: ' + err.message;
+      pre.className = 'err';
+    } finally {
+      btn.textContent = 'Test';
+      btn.disabled = false;
+    }
+  }
+
+  /* ── Helpers ── */
+  function v(id) { return document.getElementById(id).value.trim(); }
+
+  function toast(msg, color) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.borderColor = color === 'green' ? 'rgba(16,185,129,.4)' : color === 'red' ? 'rgba(239,68,68,.4)' : 'var(--border)';
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3500);
+  }
+
+  /* ── Auto-fill GitHub repo from service name ── */
+  document.getElementById('serviceName').addEventListener('input', function() {
+    const repo = document.getElementById('gitHubRepository');
+    if (!repo.value) repo.placeholder = this.value || 'Leave blank to auto-fill from service name';
+  });
+
+  document.getElementById('backend-url').textContent = BASE.replace('/api', '');
+  checkHealth(false);
+  setInterval(() => checkHealth(false), 10000);
+</script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+com/devops/bootstrap/platform/ServiceBootstrapRequest.class
+com/devops/bootstrap/generator/FileSystemGenerator.class
+com/devops/bootstrap/BootstrapPlatformApplication.class
+com/devops/bootstrap/platform/MicroserviceBootstrapPlatform.class
+com/devops/bootstrap/generator/TemplateEngine$TemplateProcessingException.class
+com/devops/bootstrap/integration/GitHubIntegration.class
+com/devops/bootstrap/generator/DockerGenerator.class
+com/devops/bootstrap/integration/GitHubIntegration$GitHubAPIException.class
+com/devops/bootstrap/controller/BootstrapController.class
+com/devops/bootstrap/generator/JenkinsPipelineGenerator.class
+com/devops/bootstrap/platform/MicroserviceBootstrapPlatform$BootstrapException.class
+com/devops/bootstrap/generator/TemplateEngine.class
+com/devops/bootstrap/platform/MicroserviceBootstrapPlatform$BootstrapResult.class
+com/devops/bootstrap/platform/ServiceModuleConfiguration.class
+com/devops/bootstrap/validation/ValidationEngine.class
